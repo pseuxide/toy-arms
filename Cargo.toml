@@ -16,6 +16,7 @@ toy-arms_derive = {path = "./toy-arms_derive", version = "0.1.1"}
 thiserror = "1.0.30"
 rustc-hash = "1.1.0"
 smartstring = "0.2.9"
+regex = "1.5.5"
 
 [features]
 default = ["internal"]

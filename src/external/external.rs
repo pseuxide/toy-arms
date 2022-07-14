@@ -2,7 +2,6 @@ use std::{
     mem::size_of,
     ptr::null_mut,
 };
-use std::mem::size_of_val;
 
 use winapi::{
         shared::{
@@ -22,8 +21,11 @@ use crate::pattern_scan_common::is_page_readable;
 use super::error::{ReadWriteMemoryFailedDetail, TAExternalError };
 
 /// read fetches the value that given address is holding.
+/// * `process_handle` - handle of the process that module belongs to.
 /// * `base_address` - the address that is supposed to have the value you want
-pub fn read<T>(process_handle: &HANDLE, base_address: usize) -> Result<T, TAExternalError> {
+/// * `buffer` - the buffer to be filled with read value. must have identical type as T.
+pub fn read<'a, T>(process_handle: &'a HANDLE, base_address: usize, size: usize, buffer: *mut T) -> Result<(), TAExternalError>
+{
     unsafe {
         let mut memory_info: MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION::default();
         VirtualQueryEx(*process_handle, base_address as LPCVOID, &mut memory_info, std::mem::size_of::<MEMORY_BASIC_INFORMATION>());
@@ -33,17 +35,19 @@ pub fn read<T>(process_handle: &HANDLE, base_address: usize) -> Result<T, TAExte
         if !is_readable {
             VirtualProtectEx(*process_handle, base_address as LPVOID, size_of::<LPVOID>(), new_protect, &mut old_protect as *mut DWORD);
         }
-        let mut buffer: T = std::mem::zeroed::<T>();
+
         let ok = ReadProcessMemory(
             *process_handle,
             base_address as LPCVOID,
-            &mut buffer as *mut _ as LPVOID,
-            size_of_val(&buffer) as SIZE_T,
+            buffer as *mut T as LPVOID,
+            size as SIZE_T,
             null_mut::<SIZE_T>(),
         );
+
         if !is_readable {
             VirtualProtectEx(*process_handle, base_address as LPVOID, size_of::<LPVOID>(), old_protect, &mut new_protect as *mut DWORD);
         }
+
         if ok == FALSE {
             let error_code = GetLastError();
             return match error_code {
@@ -53,7 +57,7 @@ pub fn read<T>(process_handle: &HANDLE, base_address: usize) -> Result<T, TAExte
                 _ => Err(TAExternalError::ReadMemoryFailed(ReadWriteMemoryFailedDetail::UnknownError { error_code })),
             }
         }
-        Ok(buffer)
+        Ok(())
     }
 }
 

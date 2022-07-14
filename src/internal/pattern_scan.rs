@@ -1,67 +1,39 @@
-use winapi::shared::minwindef::LPVOID;
-use winapi::um::memoryapi::VirtualQuery;
-use winapi::um::winnt::{ MEMORY_BASIC_INFORMATION };
-use crate::pattern_scan_common::{build_bad_match_table, is_page_readable, process_pattern_from_str};
+use std::convert::{TryFrom, TryInto};
+use std::fmt::Debug;
+use regex::bytes::Regex;
+use winapi::shared::minwindef::DWORD;
+use crate::internal::module::Module;
 
-pub(crate) unsafe fn boyer_moore_horspool(
-    pattern: &str,
-    start: usize,
-    end: usize,
-) -> Option<*mut u8> {
-    let pattern_vec = process_pattern_from_str(pattern);
-    let pattern = &pattern_vec;
 
-    let right_most_wildcard_index = if let Some(x) = pattern.iter().rev().position(|&x| x == b'\x3F') {
-            x
-        } else {
-            pattern.len()
-        };
-    let bmt = build_bad_match_table(pattern, right_most_wildcard_index);
+impl<'a> Module<'a> {
+    fn generate_regex(&self, pattern: &str) -> Option<Regex> {
+        let mut regex = pattern
+            .split_whitespace()
+            .map(|val| if val == "?" { ".".to_string() } else { format!("\\x{}", val) }).collect::<Vec<_>>().join("");
+        regex.insert_str(0, "(?s-u)");
+        Regex::new(&regex).ok()
+    }
 
-    let mut current = (start as *mut u8).offset(pattern.len() as isize - 1);
+    /// find_pattern scans over entire module and returns the address if there is matched byte pattern in module.
+    /// * `pattern` - pattern string you're looking for. format: "8D 34 85 ? ? ? ? 89 15 ? ? ? ? 8B 41 08 8B 48 04 83 F9 FF"
+    #[inline]
+    pub fn find_pattern(&self, pattern: &str) -> Option<usize> {
+        self.generate_regex(pattern)
+            .and_then(|f| f.find(&self.data)).and_then(|f| Some(f.start()))
+    }
 
-    let mut memory_info: MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION::default();
-    let mut next_page_base = 0x0;
-
-    while (current as usize) < end {
-        // if current sticks out of next_page_base, update memory_info and next_page_base.
-        if (current as usize) >= next_page_base {
-            VirtualQuery(
-                current as LPVOID,
-                &mut memory_info,
-                std::mem::size_of::<MEMORY_BASIC_INFORMATION>(),
-            );
-            next_page_base = memory_info.BaseAddress as usize + memory_info.RegionSize as usize;
-            if !is_page_readable(&memory_info) {
-                current = (memory_info.BaseAddress as usize
-                    + memory_info.RegionSize as usize
-                    + pattern.len()) as *mut u8;
-                continue;
-            }
-        }
-
-        // stores the number of how many bytes did they match so far.
-        let mut pattern_match_num = 0;
-        for (i, p) in pattern.iter().rev().enumerate() {
-            // if pattern == current or pattern == ?, then
-            if *p == b'\x3F' || *p == *current {
-                pattern_match_num += 1;
-                if pattern_match_num == pattern.len() {
-                    // This is fired when the pattern is found.
-                    return Some(current);
-                }
-                current = current.offset(-1);
-                // if pattern != current
-            } else {
-                let movement_num = if let Some(i) = bmt.get(&*current) {
-                    i.clone()
-                } else {
-                    right_most_wildcard_index
-                };
-                current = current.offset(movement_num as isize + i as isize);
-                break;
-            }
+    /// pattern scan basically be for calculating offset of some value. It adds the offset to the pattern-matched address, dereferences, and add the `extra`.
+    /// * `pattern` - pattern string you're looking for. format: "8D 34 85 ? ? ? ? 89 15 ? ? ? ? 8B 41 08 8B 48 04 83 F9 FF"
+    /// * `offset` - offset of the address from pattern's base.
+    /// * `extra` - offset of the address from dereferenced address.
+    #[inline]
+    pub fn pattern_scan(&mut self, pattern: &str, offset: usize, extra: usize) -> Option<usize> {
+        let address = self.find_pattern(pattern)?;
+        let address = address + offset;
+        let pointed_at = self.read::<usize>(address);
+        unsafe {
+            // calculate relative address
+            Some(*pointed_at as usize - self.module_base_address + extra)
         }
     }
-    None
 }

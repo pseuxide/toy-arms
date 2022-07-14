@@ -8,13 +8,12 @@ The offset DW_FORCE_ATTACK works as of the day i wrote this but it might not be 
 use winapi::shared::minwindef::HMODULE;
 use toy_arms::{detect_keypress, detect_keydown, VirtualKeyCode};
 use toy_arms::cast;
-use toy_arms::internal::{get_module_function_address};
 use toy_arms::internal::utils::get_module_handle;
 
 toy_arms::create_entrypoint!(hack_main_thread);
 
 // This offset has to be up to date.
-const DW_FORCE_ATTACK: usize = 0x31FE33C;
+const DW_FORCE_ATTACK: usize = 0x3207FE8;
 
 fn hack_main_thread() {
     let mut once = false;
@@ -22,12 +21,6 @@ fn hack_main_thread() {
     // Gets module handle
     let module_handle: HMODULE = get_module_handle("client.dll").unwrap();
     println!("module handle = {:?}", module_handle as usize);
-
-    unsafe {
-        // Gets function address
-        let function_address = get_module_function_address("USER32.dll", "MessageBoxA").unwrap();
-        println!("function address = {:?}", function_address);
-    }
 
     let shoot_flag = cast!(mut module_handle as usize + DW_FORCE_ATTACK, u8);
 

@@ -17,8 +17,9 @@ This is a toolkit for those who are fed up with coding game hack with C++ but st
 Since this library wraps many Windows API which frequently used, you can build hack without having to struggle with it.
 By using this, many part of your stress while coding low level fashion won't come in.
 
-But be informed that since I'm neither a pro rust coder nor a pro game hacker, this library still might contain some buggy code which causes unintentional behavior.
-I'd be pleased if you help me improve toy-arms by spotting them and make PR or issue.
+# Please note
+With that being said, since I'm neither a pro rust coder nor a pro game hacker, this library isn't mature at all and still might contain lots of buggy code which causes unintentional behavior.
+I'd be pleased if you help me improve toy-arms by spotting them and open PR or issue.
 
 # :pushpin: Table of contents
 
@@ -78,6 +79,11 @@ target = "i686-pc-windows-msvc"
 ```
 
 Or put `--target i686-pc-windows-msvc` flag everytime when you build the code.
+
+If you don't have toolchain for 32bit msvc, do following
+```shell
+ rustup target add i686-pc-windows-msvc 
+```
 
 # :scroll: Practical Examples
 
@@ -432,3 +438,6 @@ To build examples in x86 arch:
 ```shell
 cargo build --example EXAMPLE_NAME --target i686-pc-windows-msvc
 ```
+
+# Acknowledge
+[hazedumper-rs](https://github.com/frk1/hazedumper-rs) - referenced as role model of pattern scan

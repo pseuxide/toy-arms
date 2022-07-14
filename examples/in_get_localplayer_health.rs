@@ -5,7 +5,7 @@ also, the offset of DW_LOCAL_PLAYER works as of the day i wrote this but it migh
 */
 use toy_arms::GameObject;
 use toy_arms::{cast, create_entrypoint, VirtualKeyCode};
-use toy_arms::internal::Module;
+use toy_arms::internal::module::Module;
 use toy_arms_derive::GameObject;
 
 create_entrypoint!(hack_main_thread);

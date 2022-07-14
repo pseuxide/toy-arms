@@ -7,7 +7,7 @@ The model pattern is for dwForceAttack.
 use toy_arms::{
     detect_keypress,
     internal::{
-        Module
+        module::Module
     },
     VirtualKeyCode
 };

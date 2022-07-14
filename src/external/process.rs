@@ -31,7 +31,6 @@ pub struct Process<'a> {
     pub process_name: &'a str,
     pub process_id: u32,
     pub process_handle: HANDLE,
-    is_wow64: bool,
 }
 
 
@@ -47,7 +46,6 @@ impl<'a> Default for Process<'a> {
             process_name: "",
             process_id: 0,
             process_handle: 0x0 as HANDLE,
-            is_wow64: false,
         }
     }
 }
@@ -63,7 +61,6 @@ impl<'a> Process<'a> {
             process_name,
             process_id,
             process_handle,
-            is_wow64: is_wow64 == 1,
         })
     }
 
@@ -83,11 +80,11 @@ impl<'a> Process<'a> {
             if Module32First(snap_handle, &mut module_entry) == TRUE {
                 if read_null_terminated_string(module_entry.szModule.as_ptr() as usize).unwrap() == module_name
                 {
-                    return Ok(Module::from_module_entry(
+                    return Module::from_module_entry(
                         &self.process_handle,
                         &module_entry,
                         module_name,
-                    ));
+                    );
                 }
                 loop {
                     if Module32Next(snap_handle, &mut module_entry) == FALSE {
@@ -98,11 +95,11 @@ impl<'a> Process<'a> {
                     if read_null_terminated_string(module_entry.szModule.as_ptr() as usize).unwrap()
                         == module_name
                     {
-                        return Ok(Module::from_module_entry(
+                        return Module::from_module_entry(
                             &self.process_handle,
                             &module_entry,
                             module_name,
-                        ));
+                        );
                     }
                 }
             }

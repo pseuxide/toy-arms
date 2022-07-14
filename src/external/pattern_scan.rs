@@ -1,60 +1,40 @@
-use winapi::shared::minwindef::LPCVOID;
-use winapi::um::memoryapi::VirtualQueryEx;
-use winapi::um::winnt::{HANDLE, MEMORY_BASIC_INFORMATION};
-use crate::external::read;
-use crate::pattern_scan_common::{build_bad_match_table, is_page_readable, process_pattern_from_str};
+pub mod module {
+    use std::convert::TryInto;
+    use std::fmt::Debug;
+    use std::mem::zeroed;
+    use std::mem::size_of;
+    use regex::bytes::Regex;
+    use crate::external::module::Module;
+    use crate::external::read;
 
-pub(crate) unsafe fn boyer_moore_horspool(
-    process_handle: &HANDLE,
-    pattern: &str,
-    start: usize,
-    end: usize,
-) -> Option<usize> {
-    let pattern_vec = process_pattern_from_str(pattern);
-    let pattern = &pattern_vec;
-
-    let right_most_wildcard_index = if let Some(x) = pattern.iter().rev().position(|&x| x == b'\x3F') {
-         x
-        } else {
-        pattern.len()
-        };
-    let bmt = build_bad_match_table(pattern, right_most_wildcard_index);
-
-    let mut current = start + (pattern.len() as isize - 1) as usize;
-    let mut memory_info: MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION::default();
-    let mut next_page_base = 0x0;
-
-    while current < end {
-        if current <= next_page_base {
-            VirtualQueryEx(*process_handle, current as LPCVOID, &mut memory_info, std::mem::size_of::<MEMORY_BASIC_INFORMATION>());
-            next_page_base = memory_info.BaseAddress as usize + memory_info.RegionSize as usize;
-            if !is_page_readable(&memory_info) {
-                current = memory_info.BaseAddress as usize
-                    + memory_info.RegionSize as usize
-                    + pattern.len();
-                continue;
-            }
+    impl<'a> Module<'a> {
+        fn generate_regex(&self, pattern: &str) -> Option<Regex> {
+            let mut regex = pattern
+                .split_whitespace()
+                .map(|val| if val == "?" { ".".to_string() } else { format!("\\x{}", val)}).collect::<Vec<_>>().join("");
+            regex.insert_str(0, "(?s-u)");
+            Regex::new(&regex).ok()
         }
 
-        let mut pattern_match_num = 0;
-        for (i, p) in pattern.iter().rev().enumerate() {
-            let current_byte = read::<u8>(process_handle, current).expect("READ FAILED");
-            if *p == b'\x3F' || *p == current_byte {
-                pattern_match_num += 1;
-                if pattern_match_num == pattern.len() {
-                    return Some(current);
-                }
-                current = current - 1;
-            } else {
-                let movement_num = if let Some(i) = bmt.get(&current_byte) {
-                    i.clone()
-                } else {
-                    right_most_wildcard_index
-                };
-                current = current + movement_num + i;
-                break;
-            }
+        pub fn find_pattern(&mut self, pattern: &str) -> Option<usize> {
+            self.generate_regex(pattern)
+                .and_then(|f| f.find(&self.data)).and_then(|f| Some(f.start()))
+        }
+        // pattern scan basically be for calculating offset of some value. It adds the offset to the pattern-matched address, dereferences, and add the `extra`.
+        // * `pattern` - pattern string you're looking for. format: "8D 34 85 ? ? ? ? 89 15 ? ? ? ? 8B 41 08 8B 48 04 83 F9 FF"
+        // * `offset` - offset of the address from pattern's base.
+        // * `extra` - offset of the address from dereferenced address.
+        pub fn pattern_scan<T>(&mut self, pattern: &str, offset: usize, extra: usize) -> Option<T>
+            where T: std::ops::Add<Output = T>,
+                  T: std::ops::Sub<Output = T>,
+                  T: std::convert::TryFrom<usize>,
+                  <T as std::convert::TryFrom<usize>>::Error: Debug,
+        {
+            let address = self.find_pattern(pattern)?;
+            let address = address + offset;
+            let mut target_buffer: T = unsafe { zeroed::<T>() };
+            read::<T>(self.process_handle, self.module_base_address + address, size_of::<T>(), &mut target_buffer as *mut T).expect("READ FAILED IN PATTERN SCAN");
+            Some( target_buffer - self.module_base_address.try_into().unwrap() + extra.try_into().unwrap())
         }
     }
-    None
 }

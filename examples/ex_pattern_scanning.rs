@@ -10,8 +10,7 @@ fn main() {
     let process = Process::from_process_name("csgo.exe").unwrap();
 
     // You can get module information by using get_client
-    let client = process.get_module_info("client.dll").unwrap();
-    println!("{:#?}", client);
+    let mut client = process.get_module_info("client.dll").unwrap();
 
     let address = client.find_pattern(DW_FORCE_ATTACK_PATTERN);
     match address {
