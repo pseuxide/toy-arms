@@ -1,0 +1,25 @@
+[package]
+name = "external"
+version = "0.9.5"
+edition = "2021"
+
+[dependencies]
+winapi = { version = "0.3.9", features = ["winuser", "minwindef", "libloaderapi", "memoryapi", "consoleapi", "winnt",
+    "tlhelp32", "handleapi", "processthreadsapi", "impl-default", "errhandlingapi", "basetsd", "psapi", "wow64apiset"] }
+toy-arms = {path = "../toy-arms"}
+thiserror = "1.0.30"
+rustc-hash = "1.1.0"
+smartstring = "0.2.9"
+regex = "1.5.5"
+
+[[example]]
+name = "auto_shoot"
+required-features = ["external"]
+
+[[example]]
+name = "get_localplayer_health"
+required-features = ["external"]
+
+[[example]]
+name = "pattern_scanning"
+required-features = ["external"]

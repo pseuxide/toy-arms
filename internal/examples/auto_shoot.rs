@@ -6,11 +6,12 @@ The offset DW_FORCE_ATTACK works as of the day i wrote this but it might not be 
 */
 
 use winapi::shared::minwindef::HMODULE;
-use toy_arms::{detect_keypress, detect_keydown, VirtualKeyCode};
-use toy_arms::cast;
-use toy_arms::internal::utils::get_module_handle;
+use toy_arms::keyboard::{detect_keypress, VirtualKeyCode};
+use internal::cast;
+use internal::utils::get_module_handle;
+use toy_arms::detect_keydown;
 
-toy_arms::create_entrypoint!(hack_main_thread);
+internal::create_entrypoint!(hack_main_thread);
 
 // This offset has to be up to date.
 const DW_FORCE_ATTACK: usize = 0x3207FE8;

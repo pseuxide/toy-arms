@@ -5,6 +5,7 @@ pub use winapi::um::winuser::GetAsyncKeyState;
 /// * `$keycode` - VirtualKeycode you want to detect that's being pressed.
 /// #Example
 /// ```rust
+/// use toy_arms::detect_keydown;
 /// if detect_keydown!(VirtualKeyCode::VK_INSERT, VirtualKeyCode::VK_HOME) {
 ///     println!("INSERT and HOME is both pressed down");
 /// }
@@ -12,7 +13,7 @@ pub use winapi::um::winuser::GetAsyncKeyState;
 #[macro_export]
 macro_rules! detect_keydown {
     ($($keycode:expr),*) => {
-            if true $(&& (|keycode| unsafe { $crate::GetAsyncKeyState(keycode) })($keycode) & 0x8000 != 0 )* {
+            if true $(&& (|keycode| unsafe { $crate::keyboard::GetAsyncKeyState(keycode) })($keycode) & 0x8000 != 0 )* {
                 true
             } else {
                 false
@@ -25,7 +26,7 @@ macro_rules! detect_keydown {
 /// Make sure you release your finger immediately after pressing a key just in case so that this function catches key press only once.
 /// # Example
 /// ```rust
-/// use toy_arms::VirtualKeyCode;
+/// use toy_arms::keyboard::VirtualKeyCode;
 /// if toy_arms::detect_keypress(VirtualKeyCode::VK_HOME) {
 ///     println!("HOME key is pressed!");
 /// }

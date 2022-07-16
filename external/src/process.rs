@@ -22,9 +22,9 @@ use winapi::um::tlhelp32::{Process32First, Process32Next, PROCESSENTRY32, TH32CS
 use winapi::um::winnt::PROCESS_ALL_ACCESS;
 use super::error::{ TAExternalError, SnapshotFailedDetail };
 
-use crate::utils_common::read_null_terminated_string;
+use toy_arms::utils::read_null_terminated_string;
 use winapi::um::wow64apiset::IsWow64Process;
-use crate::external::module::Module;
+use crate::module::Module;
 
 #[derive(Debug)]
 pub struct Process<'a> {

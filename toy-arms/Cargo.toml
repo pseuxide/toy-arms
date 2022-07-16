@@ -1,0 +1,23 @@
+[package]
+name = "toy-arms"
+version = "0.9.5"
+edition = "2021"
+authors = ["s3pt3mb3r <s3pt3mb3r@protonmail.com>"]
+description = "A crates designed to ease game hacking in rust."
+license = "MIT"
+keywords = ["gamehack", "cheat", "windows", "memory"]
+repository = "https://github.com/s3pt3mb3r/toy-arms"
+readme = "README.md"
+
+[features]
+default = ["internal"]
+internal = []
+external = []
+
+[dependencies]
+winapi = { version = "0.3.9", features = ["winuser", "winnt"] }
+
+[package.metadata.docs.rs]
+features = ["internal", "external"]
+default-target = "x86_64-pc-windows-msvc"
+targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]

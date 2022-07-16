@@ -3,7 +3,8 @@ This is the demonstration of how to make the simplest hack with toy-arms.
 */
 // A neat macro which defines entry point instead of you.
 // Also, you dont have to alloc/free console by yourself, console will show up when u compile into debug build.
-toy_arms::create_entrypoint!(hack_main_thread);
+
+internal::create_entrypoint!(hack_main_thread);
 
 // Main thread
 fn hack_main_thread() {

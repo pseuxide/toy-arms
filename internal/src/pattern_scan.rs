@@ -1,11 +1,8 @@
-use std::convert::{TryFrom, TryInto};
-use std::fmt::Debug;
 use regex::bytes::Regex;
-use winapi::shared::minwindef::DWORD;
-use crate::internal::module::Module;
+use super::module::Module;
 
 
-impl<'a> Module<'a> {
+impl Module {
     fn generate_regex(&self, pattern: &str) -> Option<Regex> {
         let mut regex = pattern
             .split_whitespace()
@@ -33,7 +30,7 @@ impl<'a> Module<'a> {
         let pointed_at = self.read::<usize>(address);
         unsafe {
             // calculate relative address
-            Some(*pointed_at as usize - self.module_base_address + extra)
+            Some(*pointed_at as usize - self.base_address + extra)
         }
     }
 }

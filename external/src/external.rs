@@ -17,7 +17,7 @@ use winapi::{
 use winapi::shared::minwindef::{ DWORD };
 use winapi::um::memoryapi::{VirtualProtectEx, VirtualQueryEx};
 use winapi::um::winnt::{MEMORY_BASIC_INFORMATION, PAGE_READWRITE};
-use crate::pattern_scan_common::is_page_readable;
+use toy_arms::pattern_scan::is_page_readable;
 use super::error::{ReadWriteMemoryFailedDetail, TAExternalError };
 
 /// read fetches the value that given address is holding.

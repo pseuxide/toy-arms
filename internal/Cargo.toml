@@ -1,0 +1,34 @@
+[package]
+name = "internal"
+version = "0.9.5"
+edition = "2021"
+
+[dependencies]
+winapi = { version = "0.3.9", features = ["winuser", "minwindef", "libloaderapi", "memoryapi", "consoleapi", "winnt",
+    "tlhelp32", "handleapi", "processthreadsapi", "impl-default", "errhandlingapi", "basetsd", "psapi", "wow64apiset"] }
+toy-arms_derive = {path = "../toy-arms_derive"}
+toy-arms = {path = "../toy-arms"}
+thiserror = "1.0.30"
+rustc-hash = "1.1.0"
+smartstring = "0.2.9"
+regex = "1.5.5"
+
+[[example]]
+name = "get_localplayer_health"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "simplest_dll"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "auto_shoot"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "pattern_scanning"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "pattern_all_test"
+crate-type = ["cdylib"]

@@ -13,9 +13,9 @@ use winapi::{
     }
 };
 
-use crate::utils_common::read_null_terminated_string;
+use toy_arms::utils::read_null_terminated_string;
 use smartstring::alias::String;
-use crate::external::error::TAExternalError;
+use crate::error::TAExternalError;
 use crate::external::read;
 
 #[derive(Debug)]

@@ -4,8 +4,8 @@ pub mod module {
     use std::mem::zeroed;
     use std::mem::size_of;
     use regex::bytes::Regex;
-    use crate::external::module::Module;
     use crate::external::read;
+    use crate::module::Module;
 
     impl<'a> Module<'a> {
         fn generate_regex(&self, pattern: &str) -> Option<Regex> {

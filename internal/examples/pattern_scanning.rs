@@ -4,21 +4,19 @@ Make sure you inject this image to csgo.exe.
 The model pattern is for dwForceAttack.
 */
 
-use toy_arms::{
+use internal::module::Module;
+use toy_arms::keyboard::{
     detect_keypress,
-    internal::{
-        module::Module
-    },
-    VirtualKeyCode
+    VirtualKeyCode,
 };
-toy_arms::create_entrypoint!(hack_main_thread);
+internal::create_entrypoint!(hack_main_thread);
 
 const DW_FORCE_ATTACK_PATTERN: &str = "89 0D ? ? ? ? 8B 0D ? ? ? ? 8B F2 8B C1 83 CE 04";
 
 fn hack_main_thread() {
     let mut once = false;
 
-    let client = Module::from_module_name("client.dll").unwrap();
+    let mut client = Module::from_name("client.dll").unwrap();
 
     match client.find_pattern(DW_FORCE_ATTACK_PATTERN) {
         Some(i) => println!("*dwForceAttack address: 0x{:x}", i),
